@@ -76,27 +76,40 @@ class modelWrapper():
                 print(
                     "Epoch " + str(e) + ": " +
                     "Train loss:", str(sum_loss_train) + ". " + 
-                    'Train accuracy {:0.2f}%'.format(self.score(X_train, y_train)) + ". " +
-                    ('Test accuracy {:0.2f}%'.format(self.score(X_test, y_test)) if compute_test_err else ""))
+                    'Train accuracy {:0.2f}%'.format(self.score(X_train, y_train)*100) + ". " +
+                    ('Test accuracy {:0.2f}%'.format(self.score(X_test, y_test)*100) if compute_test_err else ""))
         return self
     
     def compute_nb_errors(self, X, y):
         """ Compute the number of misclassified samples. """
+        self.eval()
+        
         predicted_classes = self.predict(X)
         true_classes = y.data.max(1)[1] if y.dim() == 2 else y.data # if one-hot encoding then extract the class
         
         nb_errors = (true_classes != predicted_classes).sum()
 
+        self.train()
         return nb_errors
 
     def predict(self, X):
         """ Predict the label of the samples in X. """
-        return self(X).data.max(1)[1]
+        self.eval()
+        
+        predictions = self(X).data.max(1)[1]
+        
+        self.train()
+        return predictions
     
     def score(self, X, y):
         """ Compute the accuracy. """
+        self.eval()
+        
         true_classes = y.data.max(1)[1] if y.dim() == 2 else y.data # if one-hot encoding then extract the class
-        return (self.predict(X)==true_classes).sum()/X.shape[0]
+        score = (self.predict(X)==true_classes).sum()/X.shape[0]
+        
+        self.train()
+        return score
     
     def cross_validate(self, X, y, n_splits=4, epochs=100, verbose=False):
         """ Run cross validation on the model and return the obtained test and train scores. """
