@@ -7,15 +7,26 @@ the neural network. """
 import torch
 from torch import nn
 from sklearn.model_selection import KFold
+import os
+from copy import deepcopy
 
-class modelWrapper():
+class modelWrapper(nn.Module):
     """ 
     Wrap a neural network class. 
     
-    The subclass should specify the following parameters:
+    The subclass should specify the following parameters (to be initialized in the __init__):
+        - self.features: 
+            of class torch.nn.Model (e.g. torch.nn.Sequential(...)) used to preprocess
+            the data.
+        - self.num_features:
+            an integer indicating how many features will be extracted by self.features
+            and used to reshape the data before feeding it to the self.classifier.
+        - self.classifier:
+            after reshaping the data into (#samples, self.num_features) it is fed to 
+            self.classifier (of class torch.nn.Model) which should contain fully connected 
+            layers and provide the final output of the forward pass.
         - self.criterion: 
             cost function used (e.g. torch.nn.CrossEntropyLoss())
-            
         - self.optimizer: 
             optimizer that will update the parameters based on 
             the computed gradients (e.g. torch.optim.Adam(self.parameters()))
@@ -23,21 +34,22 @@ class modelWrapper():
     The subclass should also implement the following methods: 
         - reset:
             re-initialize the network parameters
-            
-        - forward:
-            given the input X computes the forward pass
     """
     
     def clear(self):
         """ Reinitialize the network (used during cross validation)."""
         raise NotImplementedError
         
-    def forward(self, X):
-        """ Do the forward pass. """
-        raise NotImplementedError
+    def __init__(self):
+        super(modelWrapper, self).__init__()
+        self.dir_path = "storage/" + self.__class__.__name__
         
-        
-    def fit(self, X_train, y_train, X_test=None, y_test=None, batch_size=20, epochs=25, verbose=True):
+    def fit(self, X_train, y_train, 
+            X_test=None, y_test=None, 
+            batch_size=20, 
+            epochs=25, 
+            verbose=True,
+            save_best_model=False):
         """ Fit the model on the training data.
         Input:
         - X_train: Variable containing the input of the train data.
@@ -54,49 +66,90 @@ class modelWrapper():
                 error is computed and printed at each epoch.
         - batch_size: Integer representing the number of samples per 
                 gradient update.
-        - batch_size: Integer representing the number of epochs (#iterations 
+        - epochs: Integer representing the number of epochs (#iterations 
                 over the entire X_train and y_train data provided) to train 
                 the model.
+        - verbose: boolean indicating whether or not print a log to the standard
+                output.
+        - save_best_model: boolean. If True, the best (with the lowest loss) 
+                model state found is stored in storage/<class name>/model.
         """
         
         compute_test_err = X_test is not None and y_test is not None
         
-        for e in range(0, epochs):
-            sum_loss_train = 0
-            for b in range(0, X_train.size(0), batch_size):
-                output = self(X_train[b : b+batch_size])
-                loss = self.criterion(output, y_train[b : b+batch_size])
-                
-                sum_loss_train += loss.data[0]
-                self.zero_grad()
-                loss.backward()
-                self.optimizer.step()
+        lowest_loss = float('inf')
+        best_model = self.state_dict()
+        
+        # use "try" so that if the training stops or gets interrupted I still save the best model 
+        # and the intermediary predictions
+        try:
+            for e in range(0, epochs):
+                sum_loss_train = 0
+                for b in range(0, X_train.size(0), batch_size):
+                    output = self(X_train[b : b+batch_size])
+                    loss = self.criterion(output, y_train[b : b+batch_size])
 
-            if verbose:
-                print(
-                    "Epoch " + str(e) + ": " +
-                    "Train loss:", str(sum_loss_train) + ". " + 
-                    'Train accuracy {:0.2f}%'.format(self.score(X_train, y_train)) + ". " +
-                    ('Test accuracy {:0.2f}%'.format(self.score(X_test, y_test)) if compute_test_err else ""))
+                    sum_loss_train += loss.data[0]
+                    self.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
+
+                if sum_loss_train < lowest_loss:
+                    lowest_loss = sum_loss_train
+                    best_model = deepcopy(self.state_dict())
+
+                if verbose:
+                    print(
+                        "Epoch " + str(e) + ": " +
+                        "Train loss:", str(sum_loss_train) + ". " + 
+                        'Train accuracy {:0.2f}%'.format(self.score(X_train, y_train)*100) + ". " +
+                        ('Test accuracy {:0.2f}%'.format(self.score(X_test, y_test)*100) if compute_test_err else ""))
+        finally:
+            if save_best_model:
+                self.save_model(best_model)
+
         return self
     
     def compute_nb_errors(self, X, y):
         """ Compute the number of misclassified samples. """
+        self.eval()
+        
         predicted_classes = self.predict(X)
         true_classes = y.data.max(1)[1] if y.dim() == 2 else y.data # if one-hot encoding then extract the class
         
         nb_errors = (true_classes != predicted_classes).sum()
 
+        self.train()
         return nb_errors
 
     def predict(self, X):
         """ Predict the label of the samples in X. """
-        return self(X).data.max(1)[1]
+        self.eval()
+        
+        predictions = self(X).data.max(1)[1]
+        
+        self.train()
+        return predictions
     
     def score(self, X, y):
         """ Compute the accuracy. """
+        self.eval()
+        
         true_classes = y.data.max(1)[1] if y.dim() == 2 else y.data # if one-hot encoding then extract the class
-        return (self.predict(X)==true_classes).sum()/X.shape[0]
+        score = (self.predict(X)==true_classes).sum()/X.shape[0]
+        
+        self.train()
+        return score
+    
+    def forward(self, x):
+        """ Do the forward pass. """
+        
+        x = self.features(x)
+        
+        x = x.view(-1, self.num_features)
+        
+        x = self.classifier(x)
+        return x
     
     def cross_validate(self, X, y, n_splits=4, epochs=100, verbose=False):
         """ Run cross validation on the model and return the obtained test and train scores. """
@@ -126,3 +179,27 @@ class modelWrapper():
             result["test_score"].append(self.score(X_te, y_te))
 
         return result
+    
+    def save_model(self, model_state=None):
+        """ Save the model to <self.dir_path>/model. """
+        
+        if not os.path.exists(self.dir_path):
+            os.makedirs(self.dir_path)
+            
+        if model_state is None:
+            print("take self best")
+            model_state = self.state_dict()
+            
+        torch.save(model_state, self.dir_path + "/model")
+        return self
+    
+    def load_model(self):
+        """ Load the model parameters from <self.dir_path>/model. """
+        
+        file_path = self.dir_path + "/model"
+        
+        if not os.path.isfile(file_path):
+            raise Exception("Could not find the model in " + file_path)
+            
+        self.load_state_dict(torch.load(file_path))
+        return self

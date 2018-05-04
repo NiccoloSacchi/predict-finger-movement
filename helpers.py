@@ -3,7 +3,7 @@
 
 import matplotlib.pylab as plt
 
-def plot_scores(param, paramName, tr_scores, va_scores, log_scale=False):
+def plot_scores(param, paramName, tr_scores, va_scores, ylog_scale=False):
     plt.figure(figsize=(7, 5))
     plt.grid()
     plt.plot(param, tr_scores)
@@ -11,5 +11,5 @@ def plot_scores(param, paramName, tr_scores, va_scores, log_scale=False):
     plt.legend(['train', 'validation'])
     plt.xlabel(paramName)
     plt.ylabel('Accuracy')
-    if log_scale:
+    if ylog_scale:
         plt.xscale('log')
