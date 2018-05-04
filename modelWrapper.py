@@ -7,9 +7,24 @@ the neural network. """
 import torch
 from torch import nn
 from sklearn.model_selection import KFold
+
 import os
+
 from copy import deepcopy
 
+from callbacks import *
+
+class History():
+    def __init__(self):
+        self.num_epochs = 0
+        self.train_losses = []
+        self.test_losses = []
+       
+    def new_epoch(self, train_loss, test_loss=None):
+        self.num_epochs += 1
+        self.train_losses.append(train_loss)
+        self.test_losses.append(test_loss)
+        
 class modelWrapper(nn.Module):
     """ 
     Wrap a neural network class. 
@@ -32,7 +47,7 @@ class modelWrapper(nn.Module):
             the computed gradients (e.g. torch.optim.Adam(self.parameters()))
             
     The subclass should also implement the following methods: 
-        - reset:
+        - clear:
             re-initialize the network parameters
     """
     
@@ -42,6 +57,7 @@ class modelWrapper(nn.Module):
         
     def __init__(self):
         super(modelWrapper, self).__init__()
+        self.history = History()
         self.dir_path = "storage/" + self.__class__.__name__
         
     def fit(self, X_train, y_train, 
@@ -49,7 +65,9 @@ class modelWrapper(nn.Module):
             batch_size=20, 
             epochs=25, 
             verbose=True,
-            save_best_model=False):
+            callbacks=[]
+#             save_best_model=False
+           ):
         """ Fit the model on the training data.
         Input:
         - X_train: Variable containing the input of the train data.
@@ -71,9 +89,14 @@ class modelWrapper(nn.Module):
                 the model.
         - verbose: boolean indicating whether or not print a log to the standard
                 output.
+        - callbacks: list <callback> classes that will be called during training 
+                at each epoch and at the end of the training.
+              
         - save_best_model: boolean. If True, the best (with the lowest loss) 
                 model state found is stored in storage/<class name>/model.
         """
+        # ----- initialize the callbacks
+        callbacks = [c(self) for c in callbacks]
         
         compute_test_err = X_test is not None and y_test is not None
         
@@ -93,10 +116,9 @@ class modelWrapper(nn.Module):
                     self.zero_grad()
                     loss.backward()
                     self.optimizer.step()
-
-                if sum_loss_train < lowest_loss:
-                    lowest_loss = sum_loss_train
-                    best_model = deepcopy(self.state_dict())
+                    
+                test_loss = self.criterion(self(X_test), y_test).data[0] if compute_test_err else None
+                self.history.new_epoch(sum_loss_train, test_loss)
 
                 if verbose:
                     print(
@@ -104,10 +126,15 @@ class modelWrapper(nn.Module):
                         "Train loss:", str(sum_loss_train) + ". " + 
                         'Train accuracy {:0.2f}%'.format(self.score(X_train, y_train)*100) + ". " +
                         ('Test accuracy {:0.2f}%'.format(self.score(X_test, y_test)*100) if compute_test_err else ""))
+                    
+                # ----- call the callbacks classes (update their internal state)
+                for callback in callbacks:
+                    callback()
         finally:
-            if save_best_model:
-                self.save_model(best_model)
-
+            # ----- finalize the callbacks classes (which may store to file their state) 
+            for callback in callbacks:
+                    callback.end()
+                    
         return self
     
     def compute_nb_errors(self, X, y):
@@ -164,16 +191,18 @@ class modelWrapper(nn.Module):
         }
 
         split_n = 1
+        i = 0
         for tr_indices, va_indices in kf.split(X):
+            i+=1
             if verbose: 
-                print("----------------- fold " + str(split_n) + "/" + str(n_splits) + " -----------------")
+                print("----------------- fold " + str(i) + "/" + str(n_splits) + " -----------------")
             tr_indices = tr_indices.tolist()
             va_indices = va_indices.tolist()
             X_tr, y_tr = X[tr_indices], y[tr_indices]
             X_te, y_te = X[va_indices], y[va_indices]
 
             self.clear()
-            self.fit(X_tr, y_tr, epochs=epochs, verbose=verbose)
+            self.fit(X_tr, y_tr, X_te, y_te, epochs=epochs, verbose=verbose, callbacks=[keep_best_model])
 
             result["train_score"].append(self.score(X_tr, y_tr))
             result["test_score"].append(self.score(X_te, y_te))
@@ -182,24 +211,33 @@ class modelWrapper(nn.Module):
     
     def save_model(self, model_state=None):
         """ Save the model to <self.dir_path>/model. """
-        
-        if not os.path.exists(self.dir_path):
-            os.makedirs(self.dir_path)
             
         if model_state is None:
-            print("take self best")
             model_state = self.state_dict()
             
-        torch.save(model_state, self.dir_path + "/model")
+        self.save_data(model_state, "model")
         return self
     
     def load_model(self):
-        """ Load the model parameters from <self.dir_path>/model. """
+        """ Load the model parameters from <self.dir_path>/model. """            
+        self.load_state_dict(self.load_data("model"))
+        return self
+
+    def save_data(self, data, file_name="data"):
+        """ Save the passed list of predictions to <self.dir_path>/<file_name>. """
         
-        file_path = self.dir_path + "/model"
+        if not os.path.exists(self.dir_path):
+            os.makedirs(self.dir_path)
+        
+        torch.save(data, self.dir_path + "/" + file_name)
+        return self
+    
+    def load_data(self, file_name="data"):
+        """ Load and return the list of predictions from <self.dir_path>/<file_name>. """
+        
+        file_path = self.dir_path + "/" + file_name
         
         if not os.path.isfile(file_path):
-            raise Exception("Could not find the model in " + file_path)
+            raise Exception("Could not find the file:" + file_path)
             
-        self.load_state_dict(torch.load(file_path))
-        return self
+        return torch.load(file_path)
