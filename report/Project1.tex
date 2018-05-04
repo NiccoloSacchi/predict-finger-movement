@@ -57,7 +57,7 @@ We implemented the following models (from sklearn library):\\
 - Random Forest Classifier, with iteration over the max depth of the trees.\\
 - K-Nearest Neighbors, with multiple values for K. Moreover, before trainig this model, we normalized the input and applied a PCA to reduce the dimensions (we kept the 95\% of the signal energy)\\
 
-\subsection{Results obtained} 
+\subsection{Baselines results} 
 \begin{table*}
 \begin{tabular}{ | c | c | }
 \hline
@@ -78,10 +78,9 @@ Baseline & Test Accuracy  \\
 \multirow{Linear Discriminant Analysis}
 & res5 \\
 \hline
-
 \end{tabular}
 \end{table*}
-
+The above table clearly shows that none among the well-known classifiers is really able to provide a proper solution to this problem. In the next section we show the improvements that were obtained through the adoption of our own model and the methodology behind its construction. 
 \section{Deep Neural Networks}
 \label{sec:deep}
 We designed different models, starting from a Fully Connected Neural Network and then moving to Convolutional and Fully Concolutional Neural Networks. The increasing complexity of these models allowed us to get better perfomances on the test set, at the price of more time and resources needed.\\
