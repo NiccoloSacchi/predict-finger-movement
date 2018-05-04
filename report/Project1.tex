@@ -37,11 +37,11 @@
 This project consists in a two-class classification problem to predict the laterality of incoming finger movements 130ms before key-press. The electical pulse that generates the finger movement starts a fraction of second before the actual movement, giving us the possibiliy to predict which hand the subject is going to move through an EEG analisys.
 
 
-%The following sections give an overview of the techniques that were tried in order to construct a predictor. Section~\ref{sec:data-analysis} breafly describes the dataset of EEG recondings and the experiment that was perfomed to obtain them; Section~\ref{sec:baselines} proposes a first approach to the problem by using a series of simple classification models (baselines); Section~\ref{sec:deep} goes to more complex solutions exploiting Fully Connected Neural Networks and Convolutional Neural Networks; Section~\ref{sec:results} compares the results obtained with the most performing models.
+The following sections give an overview of the techniques that were tried in order to construct a predictor. Section~\ref{sec:data-analysis} breafly describes the dataset of EEG recondings and the experiment that was perfomed to obtain them; Section~\ref{sec:baselines} proposes a first approach to the problem by using a series of simple classification models (baselines); Section~\ref{sec:deep} goes to more complex solutions exploiting Fully Connected Neural Networks and Convolutional Neural Networks; Section~\ref{sec:results} compares the results obtained with the most performing models.
 
 
 
-\section{Exploratory data analysis}
+\section{Dataset}
 \label{sec:data-analysis}
 The dataset was provided by Fraunhofer-FIRST, Intelligent Data Analysis Group (Klaus-Robert Müller), and Freie Universität Berlin, Department of Neurology, Neurophysics Group. It was first given in the "BCI competition II" (May 2003) with a sample of 416 epochs, divided in 316 train records (labeled) and 100 test records (unlabeled).
 The experiment perfomed to construct the dataset consisted in examining a normal subject sitting on a chair in a relaxed position, while he was typing on a computer keyboard in a self-chosen order. 3 sessions of 6 minutes each were taken, all conducted in the same day with a small break inbetween and with an average typing speed of 1 key/second. The EEG records were made by using 28 electodes to monitor the brain electrical activity. They measured a time slot of 500ms, ending 130ms before the keypress, and sampled at 100Hz and 1000Hz. 
@@ -52,21 +52,40 @@ An example of a record with the respective label is shown in figure 1 -- Da mett
 \section{Baseline Models}
 \label{sec:baseline}
 All the baseline models were tested with cross-validation and we iterated over a range of values for some parameters in order to find the best score.
-We implemented the following models (from sktlearn library):
-- Logistic Regression, tested with a grid search on the regularization parameter. Surprisely, this model has good performances in our classification problem as shown in figure 2, despite the fact that it is much more simple than other models we tried.
-- Random Forest Classifier, with iteration over the max depth of the trees.
-- K-Nearest Neighbors, with multiple values for K. Moreover, before trainig this model, we normalized the input and applied a PCA to reduce the dimensions (we kept the 95\% of the signal energy)
-- SVM
-- Linear Discriminant Analisys
+We implemented the following models (from sklearn library):\\
+- Logistic Regression, tested with a grid search on the regularization parameter. Surprisingly, this model has good performance in our classification problem as shown in figure 2, despite the fact that it is much more simple than other models we tried.\\
+- Random Forest Classifier, with iteration over the max depth of the trees.\\
+- K-Nearest Neighbors, with multiple values for K. Moreover, before trainig this model, we normalized the input and applied a PCA to reduce the dimensions (we kept the 95\% of the signal energy)\\
 
-Result obtained 
-DA FARE
+\subsection{Results obtained} 
+\begin{table*}
+\begin{tabular}{ | c | c | }
+\hline
+Baseline & Test Accuracy  \\
+\hline
+\multirow{LogisticRegression}
+& res1 \\
+\hline
+\multirow{Random Forest Classifier}
+& res2 \\
+\hline
+\multirow{K-NN}
+& res3 \\
+\hline
+\multirow{SVM}
+& res4 \\
+\hline
+\multirow{Linear Discriminant Analysis}
+& res5 \\
+\hline
+
+\end{tabular}
+\end{table*}
 
 \section{Deep Neural Networks}
 \label{sec:deep}
-We designed different models, starting from a Fully Connected Neural Network and then moving to Convolutional and Fully Concolutional Neural Networks. The increasing complexity of these models allowed us to get better perfomances on the test set, at the price of more time and resources needed.
-
-
+We designed different models, starting from a Fully Connected Neural Network and then moving to Convolutional and Fully Concolutional Neural Networks. The increasing complexity of these models allowed us to get better perfomances on the test set, at the price of more time and resources needed.\\
+Our methodology was based on 
 
 
 \section{Results}
