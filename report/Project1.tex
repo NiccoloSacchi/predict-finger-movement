@@ -59,24 +59,21 @@ We implemented the following models (from sklearn library):\\
 
 \subsection{Baselines results} 
 \begin{table*}
+\caption{Baselines results}
+\label{tab:baselineres}
 \begin{tabular}{ | c | c | }
 \hline
 Baseline & Test Accuracy  \\
 \hline
-\multirow{LogisticRegression}
-& res1 \\
+LogisticRegression & res1 \\
 \hline
-\multirow{Random Forest Classifier}
-& res2 \\
+Random Forest Classifier & res2 \\
 \hline
-\multirow{K-NN}
-& res3 \\
+K-NN & res3 \\
 \hline
-\multirow{SVM}
-& res4 \\
+SVM & res4 \\
 \hline
-\multirow{Linear Discriminant Analysis}
-& res5 \\
+Linear Discriminant Analysis & res5 \\
 \hline
 \end{tabular}
 \end{table*}
@@ -95,11 +92,32 @@ Two further considerations must be taken into account:\\
 % cross-validation would work better if the dataset was bigger 
 % hidden units in the last layer, optimizers (ADAM, adagrad, ..), activation functions, regularization terms
 \subsection{Network Architectures}
-Here we list the network architectures that were built and tested during our experiments. For each one of them, we provide the structure. Then, we propose a summary that contains the prediction scores of all these networks. In the next paragraph, we provide more details about the architecture that provided the best result. % try to give some motivation?
-\subsubsection{2D CNN}
-asd
-\subsubsection{1D CNN}
-lol
+Here we list the network architectures that were built and tested during our experiments. For each one of them, we provide the structure. Then, we propose a summary that contains the best set parameters for all these networks, along with their the prediction scores. In the next paragraph, we provide more details about the architecture that provided the best result. % try to give some motivation?
+\subsubsection{CNN: 2D Convolutional Layers}
+This network is made of three convolutional layers and two fully connected layers:
+\subsubsection{1D CNN + Batch Norm}
+This network is made of five convolutional layers and two fully connected layers:
+\subsubsection{1D CNN + Batch Norm + Residual}
+This network contains 
+
+\begin{table*}
+\caption{Network Architectures}
+\label{tab:netarch}
+\begin{tabular}{ | c | c | c | c | c | c }
+\hline
+Network & \# Hidden Units & Optimizer & Activation Function & Regularization term & Dropout\\
+\hline
+CNN: 2D Convolutional Layers
+& res1 & asd & lol & xd & wtf \\
+\hline
+1D CNN + Batch Normalization
+& res2 & asd & lol & xd & wtf \\
+\hline
+1D CNN + Batch Normalization + Residual
+& res3 & asd & lol & xd & wtf \\
+\hline
+\end{tabular}
+\end{table*}
 
 \section{Results}
 \label{sec:results}
