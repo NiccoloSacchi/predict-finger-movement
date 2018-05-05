@@ -72,9 +72,9 @@ class CNN_1D_MaxPool(modelWrapper):
         
         self.num_features = 448
         self.classifier = nn.Sequential(
-            nn.Linear(self.num_features, nb_hidden),
+            nn.Linear(self.num_features, self.setting["nb_hidden"]),
             self.setting["activation"](),
-            nn.Linear(nb_hidden, 2)
+            nn.Linear(self.setting["nb_hidden"], 2)
         )
 
         self.criterion = nn.CrossEntropyLoss()
@@ -232,35 +232,33 @@ class CNN_1D_BatchNorm_Dial(modelWrapper):
 # --------------- 1D convolution residual network with aggregated modules + batchnorm ---------------
 class residual_block(nn.Module):
     def __init__(self, activation=nn.ReLU):
-        super(residual_block, self).__init__()
-        self.activation = activation
-        
+        super(residual_block, self).__init__()        
         num_filters = 32
         self.features = nn.Sequential(
             nn.BatchNorm1d(num_filters),
             nn.Conv1d(num_filters, num_filters, kernel_size=3, padding=2, dilation=2),
-            self.setting["activation"](),
+            activation(),
             
             nn.BatchNorm1d(num_filters),
             nn.Conv1d(num_filters, num_filters, kernel_size=3, padding=1),
-            self.setting["activation"](),
+            activation(),
             
             nn.BatchNorm1d(num_filters),
             nn.Conv1d(num_filters, num_filters, kernel_size=3, padding=1),
-            self.setting["activation"](),
+            activation()
         )
     
     def forward(self, x):        
         return x+self.features(x)
 
 class aggregated_residual_blocks(nn.Module):
-    def __init__(self, n_residual_blocks=2, activation=nn.ReLU):
+    def __init__(self, n_residual_blocks=2, activation=nn.ReLU, dropout=0):
         super(aggregated_residual_blocks, self).__init__()
-        self.activation = activation
         
         self.residual_blocks = nn.ModuleList()
         for i in range(n_residual_blocks):
             self.residual_blocks.append(residual_block(activation=activation))
+            self.residual_blocks.append(nn.Dropout(dropout))
     
     def forward(self, x):
         out = []
@@ -270,15 +268,15 @@ class aggregated_residual_blocks(nn.Module):
             
         return sum(out)+x
     
-class CNN_1D_BatchNorm_Residual(modelWrapper):
-    def __init__(self, nb_hidden=50, activation=nn.ReLU, optimizer=optim.Adam, weight_decay=0, 
-                 n_aggregated_residual_blocks=2, n_residual_blocks=2):
+class CNN_1D_Residual(modelWrapper):
+    def __init__(self, n_aggregated_residual_blocks=3, n_residual_blocks=2, **kwargs):
         # n_aggregated_residual_blocks: number of aggregated residual blocks (aggregated_residual_blocks)
         # n_residual_blocks: number of residual blocks per aggregated residual block
         
-        super(CNN_1D_BatchNorm_Residual, self).__init__()
+        super(CNN_1D_Residual, self).__init__()
         
-        self.activation = activation
+        self.n_aggregated_residual_blocks = n_aggregated_residual_blocks
+        self.n_residual_blocks = n_residual_blocks 
         
         self.features = [
             nn.BatchNorm1d(28),
@@ -287,12 +285,12 @@ class CNN_1D_BatchNorm_Residual(modelWrapper):
         ]
         for i in range(n_aggregated_residual_blocks):
             self.features.append(aggregated_residual_blocks(n_residual_blocks))
-            self.features.append(nn.Dropout(0.15))
+            self.features.append(nn.Dropout(self.setting["dropout"]))
         
         self.features += [            
             nn.BatchNorm1d(32),
             nn.Conv1d(32, 16, kernel_size=3, padding=1),
-            nn.Dropout(0.1),
+            nn.Dropout(self.setting["dropout"]),
             nn.MaxPool1d(2),
             self.setting["activation"](),
         ]
@@ -311,4 +309,13 @@ class CNN_1D_BatchNorm_Residual(modelWrapper):
         
     def prepare_data(data):
         return prepare_data(data)
+    
+    def clear(self):
+        device = next(self.parameters()).device
+        
+        self.__init__(n_aggregated_residual_blocks = self.n_aggregated_residual_blocks,
+                      n_residual_blocks = self.n_residual_blocks,
+                      **self.setting
+                     )
+        self.to(device)
 # ---------------------------------------------------------------------------

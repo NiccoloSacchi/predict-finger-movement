@@ -103,17 +103,19 @@ class modelWrapper(nn.Module):
         
         lowest_loss = float('inf')
         best_model = self.state_dict()
-        
         # use "try" so that if the training stops or gets interrupted I still save the best model 
         # and the intermediary predictions
         try:
             for e in range(0, epochs):
                 sum_loss_train = 0
-                for b in range(0, X_train.size(0), batch_size):
+                for b in range(0, X_train.size(0), batch_size):                    
                     output = self(X_train[b : b+batch_size])
                     loss = self.criterion(output, y_train[b : b+batch_size])
 
-                    sum_loss_train += loss.data[0]
+                    if torch.__version__ == '0.4.0':
+                        sum_loss_train += loss.data[0].item()
+                    else:
+                        sum_loss_train += loss.data[0]
                     self.zero_grad()
                     loss.backward()
                     self.optimizer.step()
@@ -164,7 +166,14 @@ class modelWrapper(nn.Module):
         self.eval()
         
         true_classes = y.data.max(1)[1] if y.dim() == 2 else y.data # if one-hot encoding then extract the class
-        score = (self.predict(X)==true_classes).sum()/X.shape[0]
+        pred_clases = self.predict(X)
+            
+        score = (pred_clases==true_classes).sum()
+        
+        if torch.__version__ == '0.4.0':
+            score = score.item()
+            
+        score = score/X.shape[0]
         
         self.train()
         return score
@@ -247,4 +256,7 @@ class modelWrapper(nn.Module):
     
     def clear(self):
         """ Reinitialize the network (used during cross validation)."""
+        device = next(self.parameters()).device
+        
         self.__init__(**self.setting)
+        self.to(device)
