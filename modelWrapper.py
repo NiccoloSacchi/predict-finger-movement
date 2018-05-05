@@ -6,6 +6,7 @@ the neural network. """
 
 import torch
 from torch import nn
+from torch import optim
 from sklearn.model_selection import KFold
 
 import os
@@ -42,23 +43,23 @@ class modelWrapper(nn.Module):
             layers and provide the final output of the forward pass.
         - self.criterion: 
             cost function used (e.g. torch.nn.CrossEntropyLoss())
-        - self.optimizer: 
-            optimizer that will update the parameters based on 
-            the computed gradients (e.g. torch.optim.Adam(self.parameters()))
-            
-    The subclass should also implement the following methods: 
-        - clear:
-            re-initialize the network parameters
+        #- self.optimizer: 
+        #    optimizer that will update the parameters based on 
+        #    the computed gradients (e.g. torch.optim.Adam(self.parameters()))
     """
-    
-    def clear(self):
-        """ Reinitialize the network (used during cross validation)."""
-        raise NotImplementedError
         
-    def __init__(self):
+    def __init__(self, nb_hidden=50, activation=nn.ReLU, optimizer=optim.Adam, weight_decay=0, dropout=0.1):
         super(modelWrapper, self).__init__()
         self.history = History()
         self.dir_path = "storage/" + self.__class__.__name__
+            
+        self.setting = {
+            "nb_hidden": nb_hidden,
+            "activation": activation,
+            "optimizer": optimizer,
+            "weight_decay": weight_decay,
+            "dropout": dropout
+        }
         
     def fit(self, X_train, y_train, 
             X_test=None, y_test=None, 
@@ -223,21 +224,27 @@ class modelWrapper(nn.Module):
         self.load_state_dict(self.load_data("model"))
         return self
 
-    def save_data(self, data, file_name="data"):
-        """ Save the passed list of predictions to <self.dir_path>/<file_name>. """
+    def save_data(self, data, file_path="data", pickle_protocol=2):
+        """ Save the passed list of predictions to <self.dir_path>/<file_path>. """
+        file_path = self.dir_path + "/" + file_path
+        dir_path = os.path.dirname(file_path)
         
-        if not os.path.exists(self.dir_path):
-            os.makedirs(self.dir_path)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
         
-        torch.save(data, self.dir_path + "/" + file_name)
+        torch.save(data, file_path, pickle_protocol=pickle_protocol)
         return self
     
-    def load_data(self, file_name="data"):
-        """ Load and return the list of predictions from <self.dir_path>/<file_name>. """
+    def load_data(self, file_path="data"):
+        """ Load and return the list of predictions from <self.dir_path>/<file_path>. """
         
-        file_path = self.dir_path + "/" + file_name
+        file_path = self.dir_path + "/" + file_path
         
         if not os.path.isfile(file_path):
             raise Exception("Could not find the file:" + file_path)
             
         return torch.load(file_path)
+    
+    def clear(self):
+        """ Reinitialize the network (used during cross validation)."""
+        self.__init__(**self.setting)
