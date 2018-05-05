@@ -95,6 +95,8 @@ Two further considerations must be taken into account:\\
 Here we list the network architectures that were built and tested during our experiments. For each one of them, we provide the structure. Then, we propose a summary that contains the best set parameters for all these networks, along with their the prediction scores. In the next paragraph, we provide more details about the architecture that provided the best result. % try to give some motivation?
 \subsubsection{CNN: 2D Convolutional Layers}
 This network is made of three convolutional layers and two fully connected layers:
+
+This was the first network that was used. It considers convolutional layers as 2D because at first it seemed natural to consider the provided dataset as a set of images. In the following approaches this changed: we began considering 1D convolutional layers because by analyzing the dataset it became evident that there is no specific reason to keep considering it as images. 
 \subsubsection{1D CNN + Batch Norm}
 This network is made of five convolutional layers and two fully connected layers:
 \subsubsection{1D CNN + Batch Norm + Residual}
