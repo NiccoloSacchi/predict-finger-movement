@@ -83,17 +83,23 @@ Baseline & Test Accuracy  \\
 The above table clearly shows that none among the well-known classifiers is really able to provide a proper solution to this problem. In the next section we show the improvements that were obtained through the adoption of our own model and the methodology behind its construction. 
 \section{Deep Neural Networks}
 \label{sec:deep}
-We designed different models, starting from a Fully Connected Neural Network and then moving to Convolutional and Fully Concolutional Neural Networks. The increasing complexity of these models allowed us to get better perfomances on the test set, at the price of more time and resources needed.\\
+We designed different models, starting from a Fully Connected Neural Network and then moving to Convolutional and Fully Concolutional Neural Networks.\\
+%The increasing complexity of these models allowed us to get better perfomances on the test set, at the price of more time and resources needed.\\
 Our methodology was based, at first, on building models that were inspired to the main concepts that were introduced during the lectures. Then, we focused on modifying these models with the goal of getting better results.
 \subsection{Cross-validation}
 One fundamental step of this approach consisted in adopting the cross-validation technique in order to extract the optimal parameters for each model. Given a certain parameter to optimize, the cross-validation technique consists, as first step, in splitting the available train dataset in k equal parts. Then, k-1 of these sets are used to train the model and 1 is used as a validation dataset. This process is repeated k times: at each iteration, a different part is considered as validation dataset and the remaining k-1 parts are considered as training dataset. This procedure must be repeated for a set of possible values that this parameter can assume. Finally, the parameter values that lead to the best prediction scores can be considered to be the optimal ones.
 Two further considerations must be taken into account:\\
-- There are a lot of parameters that influence the score. We considered some relevant ones: regularization terms, activation functions, optimizers, hidden units in the last layer. However, potentially relevant parameters are not considered during this optimization phase. For instance, we are not considering the filter dimensions, number of layers, the number of filters, etc. \\
+- There are a lot of parameters that influence the score. We considered some relevant ones: the regularization terms, the nature of activation functions, the type of optimizers, and the number of hidden units in the last layer. However, other relevant parameters are not considered during this optimization phase. For instance, we are not considering the filter dimensions, number of layers, the number of filters, etc. \\
 - Getting the optimal combination of parameters implies enumerating all the possible combinations of all the parameters. This results in exponential complexity and, after some tries, we observed that this is unfeasible for our available computational resources. Therefore, we adopted an approximation of this methodology, which consisted in a greed approach in which we selected the optimal parameters singularly. Although this does not provide an optimal solution, it still provides some improvement and, more importantly, it allows to keep the algorithm complexity at an acceptable level (linear). \\
 
 % cross-validation would work better if the dataset was bigger 
 % hidden units in the last layer, optimizers (ADAM, adagrad, ..), activation functions, regularization terms
-
+\subsection{Network Architectures}
+Here we list the network architectures that were built and tested during our experiments. For each one of them, we provide the structure. Then, we propose a summary that contains the prediction scores of all these networks. In the next paragraph, we provide more details about the architecture that provided the best result. % try to give some motivation?
+\subsubsection{2D CNN}
+asd
+\subsubsection{1D CNN}
+lol
 
 \section{Results}
 \label{sec:results}
