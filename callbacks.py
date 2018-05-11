@@ -37,17 +37,19 @@ class keep_best_model(callback):
     """ Identifies the best model parameters found during training and loads them 
     in the model at the end of the training. """
     
-    def __init__(self, model):
+    def __init__(self, model, use_test_loss=True):
         self.model = model
-        self.lowest_train_loss = float("inf")
+        self.use_test_loss = use_test_loss
+        
+        self.lowest_loss = float("inf")
         
         self.best_model_state = deepcopy(self.model.state_dict())
 
     def __call__(self):
+        curr_loss = self.model.history.test_losses[-1] if self.use_test_loss else self.model.history.train_losses[-1]
         # check if the last computed loss is lower that the best seen one
-        curr_loss = self.model.history.train_losses[-1]
-        if curr_loss < self.lowest_train_loss:
-            self.lowest_train_loss = curr_loss
+        if curr_loss < self.lowest_loss:
+            self.lowest_loss = curr_loss
             self.best_model_state = deepcopy(self.model.state_dict())
             
     def end(self):

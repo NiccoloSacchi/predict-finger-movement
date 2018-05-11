@@ -48,7 +48,14 @@ class modelWrapper(nn.Module):
         #    the computed gradients (e.g. torch.optim.Adam(self.parameters()))
     """
         
-    def __init__(self, nb_hidden=50, activation=nn.ReLU, optimizer=optim.Adam, weight_decay=0, dropout=0.1):
+    def __init__(self, 
+                 nb_hidden=50, 
+                 activation=nn.ReLU, 
+                 optimizer=optim.Adam, 
+                 weight_decay=0, 
+                 dropout=0.1, 
+                 nb_layers=1 # number of additional layers
+                ):
         super(modelWrapper, self).__init__()
         self.history = History()
         self.dir_path = "storage/" + self.__class__.__name__
@@ -58,7 +65,8 @@ class modelWrapper(nn.Module):
             "activation": activation,
             "optimizer": optimizer,
             "weight_decay": weight_decay,
-            "dropout": dropout
+            "dropout": dropout,
+            "nb_layers": nb_layers
         }
         
     def fit(self, X_train, y_train, 
