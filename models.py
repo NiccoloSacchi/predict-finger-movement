@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Tried Models. """
 
+import torch
 from torch import nn 
 from torch import optim
 
@@ -16,7 +17,6 @@ def prepare_data(data):
 class CNN2D_MaxPool(modelWrapper):
     def __init__(self, **kwargs):
         super(CNN2D_MaxPool, self).__init__(**kwargs)    
-        
         self.features = [
             nn.Conv2d(1, 32, kernel_size=(3, 7), padding=(1, 3)),
             nn.MaxPool2d(2),

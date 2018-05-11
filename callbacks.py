@@ -37,7 +37,7 @@ class keep_best_model(callback):
     """ Identifies the best model parameters found during training and loads them 
     in the model at the end of the training. """
     
-    def __init__(self, model, use_test_loss=True):
+    def __init__(self, model, use_test_loss=False):
         self.model = model
         self.use_test_loss = use_test_loss
         
