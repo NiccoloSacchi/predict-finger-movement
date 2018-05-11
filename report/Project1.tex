@@ -88,23 +88,6 @@ K-NN & res3 \\
 \end{table*}
 
 
-%\begin{table}[htb]
-%	\caption{hello2 testing}
-%	\label{1234}
-%	\resizebox{\columnwidth}{!}{%
-%		\begin{tabular}{c*{5}{>{$}c<{$}}}
-%			& \text{LfdR}        & \text{KLSRf}       & \text{MLDFSP}       & \text{PNDND}       & \text{LDFSSVM}     \\
-%			Aa  & 97.8 2.3 & 97.4 3.0 & 97.4 3.0 & 97.0 3.6 & 99.1 1.8 \\
-%			Al  & 69.8 9.5 & 93.6 3.6 & 86.9 8.4 & 91.5 4.5 & 94.9 5.4 \\
-%			Av  & 97.0 2.9 & 99.2 1.8 & 99.6 1.4 & 98.3 2.9 & 99.6 1.4 \\
-%			Aw  & 97.8 3.1 & 95.3 3.1 & 96.2 2.5 & 92.4 3.3 & 97.5 3.0 \\
-%			Ay  & 77.5 7.2 & 90.2 4.1 & 90.2 5.7 & 88.1 4.8 & 91.6 4.9 \\
-%			avg & 88.0      & 95.1      & 94.1      & 93.5      & 96.5
-%		\end{tabular}
-%	}
-%\end{table}
-
-
 The above table clearly shows that none among the well-known classifiers is really able to provide a proper solution to this problem. In the next section we show the improvements that were obtained through the adoption of our own model and the methodology behind its construction. 
 \section{Deep Neural Networks}
 \label{sec:deep}
@@ -126,6 +109,13 @@ Two further considerations must be taken into account:\\
 \subsection{CNN: 2D Convolutional Layers}
 This network is made of three convolutional layers and two fully connected layers:--da cambiare quando abbiamo i risultati
 
+\begin{center}
+	\captionsetup{type=figure}
+	\includegraphics[width=0.4\textwidth]{img/Conv2D.png}
+	\label{fig:Conv2D}
+	\caption {2D Convolutional Neural Network}
+\end{center}
+
 
 This was the first network that was used. It considers convolutional layers as 2D because at first it seemed natural to consider the provided dataset as a set of images. Therefore, the network was trying to find patterns between close pixels, by applying 2D filters over the input. This approach makes sense if there is a spatial relationship among the features. In our case, as mentioned in \ref{sec:data-analysis}, the input sample consists in 28 signals (EEG channels) captured over different time frames. Since the position of the channels is not known, we cannot assume any spatial relationship between them. Therefore, applying a 2D filter over this dataset might try to find patterns between channels that are not spatially correlated. Consequently, we decided to consider them all together by applying a 1D filter instead of a 2D. 
 
@@ -133,9 +123,23 @@ This was the first network that was used. It considers convolutional layers as 2
 \subsection{1D CNN + Batch Normalization}
 This network is made of five convolutional layers and two fully connected layers:
 
+\begin{center}
+	\captionsetup{type=figure}
+	\includegraphics[width=0.45\textwidth]{img/Conv1DBatchNorm.png}
+	\label{fig:Conv2D}
+	\caption {1D Convolutional Neural Network with Batch Normalization}
+\end{center}
+
 It can be seen that at each layer the batch normalization is applied. This technique provides significant improvements in terms of test accuracy (X vs Y). Batch normalization focuses on performing normalization at each layer, and one of the main benefits is the mitigation of the change of the input distribution that may occur across the network layers. \\% in order to mitigate the "Internal Covariate Shift" problem. The internal covariate shift relates to the change of the input distribution
 One remark that concerns all the networks that involve batch normalization: although several sources claim that batch normalization make the dropout advatanges negligible, we decided to try to tune that parameter during the cross-validation in any case.
 \subsection{1D CNN + Batch Normalization + Residual}
+\begin{center}
+	\captionsetup{type=figure}
+	\includegraphics[width=0.5\textwidth]{img/Residual1D.png}
+	\label{fig:Conv2D}
+	\caption {1D Residual Neural Network}
+\end{center}
+
 This network contains a set of convolutional layers, a set of linear layers, and a set of residual layers. Residual layers consist in having a block of convolutional layers (replicated a certain amount of times) whose output (at the end of the block) is influenced by the input of the block too. Our model accepts an arbitrary number of such blocks (each block has three convolutional layers), but by default there are two of them.
 
 

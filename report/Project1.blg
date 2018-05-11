@@ -1,0 +1,15 @@
+This is BibTeX, Version 0.99dThe top-level auxiliary file: Project1.aux
+The style file: IEEEtran.bst
+I couldn't open database file groupRoadSegmentationFault-literature.bib
+---line 39 of file Project1.aux
+ : \bibdata{groupRoadSegmentationFault-literature
+ :                                               }
+I'm skipping whatever remains of this command
+I found no \citation commands---while reading file Project1.aux
+I found no database files---while reading file Project1.aux
+-- IEEEtran.bst version 1.13 (2008/09/30) by Michael Shell.
+-- http://www.michaelshell.org/tex/ieeetran/bibtex/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+
+Done.
+(There were 3 error messages)
