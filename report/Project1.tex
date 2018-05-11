@@ -8,6 +8,12 @@
 \usepackage{kantlipsum}     % for random text
 \usepackage{todonotes}
 \usepackage[margin=0.9in]{geometry}
+\usepackage{multirow}
+\usepackage[margin=0.9in]{geometry}
+\usepackage[english]{babel}
+\usepackage{dsfont}
+\usepackage{caption,setspace}
+\usepackage{array}
 
 \begin{document}
 	
@@ -29,8 +35,7 @@
 \maketitle
 
 \begin{abstract}
-  The goal of this project is to train and test a predictor of finger movements (left or right hand) from Electroencephalography
-(EEG) recordings. We decided to construct several solutions, starting from simple baseline models and then escalating to complex deep neural networks. 
+  The goal of this project is to train and test a predictor of finger movements (left or right hand) from Electroencephalography (EEG) recordings. We decided to construct several solutions, starting from simple baseline models and then escalating to complex deep neural networks. 
 \end{abstract}
 
 \section{Introduction}
@@ -46,18 +51,26 @@ The following sections give an overview of the techniques that were tried in ord
 The dataset was provided by Fraunhofer-FIRST, Intelligent Data Analysis Group (Klaus-Robert Müller), and Freie Universität Berlin, Department of Neurology, Neurophysics Group. It was first given in the "BCI competition II" (May 2003) with a sample of 416 epochs, divided in 316 train records (labeled) and 100 test records (unlabeled).
 The experiment perfomed to construct the dataset consisted in examining a normal subject sitting on a chair in a relaxed position, while he was typing on a computer keyboard in a self-chosen order. 3 sessions of 6 minutes each were taken, all conducted in the same day with a small break inbetween and with an average typing speed of 1 key/second. The EEG records were made by using 28 electodes to monitor the brain electrical activity. They measured a time slot of 500ms, ending 130ms before the keypress, and sampled at 100Hz and 1000Hz. 
 In our project we used the records sampled at 100Hz, imported as a 28 (elecrode's measurements) x 50 (time frames) matrices. We also tested the 1000Hz records after we identified the best predictor model.
-An example of a record with the respective label is shown in figure 1 -- Da mettere
+An example of a record with the respective label is shown in figure~\ref{fig:Sample}
+
+\begin{center}
+	\captionsetup{type=figure}
+	\includegraphics[width=0.5\textwidth]{img/sample.png}
+	\label{fig:Sample}
+	\caption {Sample from the dataset with label 1 (right movement)}
+\end{center}
 
 
 \section{Baseline Models}
 \label{sec:baseline}
 All the baseline models were tested with cross-validation and we iterated over a range of values for some parameters in order to find the best score.
-We implemented the following models (from sklearn library):\\
-- Logistic Regression, tested with a grid search on the regularization parameter. Surprisingly, this model has good performance in our classification problem as shown in figure 2, despite the fact that it is much more simple than other models we tried.\\
-- Random Forest Classifier, with iteration over the max depth of the trees.\\
-- K-Nearest Neighbors, with multiple values for K. Moreover, before trainig this model, we normalized the input and applied a PCA to reduce the dimensions (we kept the 95\% of the signal energy)\\
+We implemented the following models (from sklearn library):
+\begin{itemize}
+\item Logistic Regression, tested with a grid search on the regularization parameter. Surprisingly, this model has good performance in our classification problem as shown in figure ~\ref{fig:baselineres}, despite the fact that it is much more simple than other models we tried.
+\item Random Forest Classifier, with iteration over the max depth of the trees.
+\item K-Nearest Neighbors, with multiple values for K. Moreover, before trainig this model, we normalized the input and applied a PCA to reduce the dimensions (we kept the 95\% of the signal energy)
+\end{itemize}
 
-\subsection{Baselines results} 
 \begin{table*}
 \caption{Baselines results}
 \label{tab:baselineres}
@@ -71,32 +84,52 @@ Random Forest Classifier & res2 \\
 \hline
 K-NN & res3 \\
 \hline
-SVM & res4 \\
-\hline
-Linear Discriminant Analysis & res5 \\
-\hline
 \end{tabular}
 \end{table*}
+
+
+%\begin{table}[htb]
+%	\caption{hello2 testing}
+%	\label{1234}
+%	\resizebox{\columnwidth}{!}{%
+%		\begin{tabular}{c*{5}{>{$}c<{$}}}
+%			& \text{LfdR}        & \text{KLSRf}       & \text{MLDFSP}       & \text{PNDND}       & \text{LDFSSVM}     \\
+%			Aa  & 97.8 2.3 & 97.4 3.0 & 97.4 3.0 & 97.0 3.6 & 99.1 1.8 \\
+%			Al  & 69.8 9.5 & 93.6 3.6 & 86.9 8.4 & 91.5 4.5 & 94.9 5.4 \\
+%			Av  & 97.0 2.9 & 99.2 1.8 & 99.6 1.4 & 98.3 2.9 & 99.6 1.4 \\
+%			Aw  & 97.8 3.1 & 95.3 3.1 & 96.2 2.5 & 92.4 3.3 & 97.5 3.0 \\
+%			Ay  & 77.5 7.2 & 90.2 4.1 & 90.2 5.7 & 88.1 4.8 & 91.6 4.9 \\
+%			avg & 88.0      & 95.1      & 94.1      & 93.5      & 96.5
+%		\end{tabular}
+%	}
+%\end{table}
+
+
 The above table clearly shows that none among the well-known classifiers is really able to provide a proper solution to this problem. In the next section we show the improvements that were obtained through the adoption of our own model and the methodology behind its construction. 
 \section{Deep Neural Networks}
 \label{sec:deep}
-We designed different models, starting from a Fully Connected Neural Network and then moving to Convolutional and Fully Concolutional Neural Networks.\\
+%We designed different models, starting from a simple Convolutional Neural Network and then tuning the parameters to reach more complex solutions.\\
 %The increasing complexity of these models allowed us to get better perfomances on the test set, at the price of more time and resources needed.\\
 Our methodology was based, at first, on building models that were inspired to the main concepts that were introduced during the lectures. Then, we focused on modifying these models with the goal of getting better results.\\
 %\subsection{Cross-validation}
 One fundamental step of this approach consisted in adopting the cross-validation technique in order to extract the optimal parameters for each model. Given a certain parameter to optimize, the cross-validation technique consists, as first step, in splitting the available train dataset in k equal parts. Then, k-1 of these sets are used to train the model and 1 is used as a validation dataset. This process is repeated k times: at each iteration, a different part is considered as validation dataset and the remaining k-1 parts are considered as training dataset. This procedure must be repeated for a set of possible values that this parameter can assume. Finally, the parameter values that lead to the best prediction scores can be considered to be the optimal ones.
 Two further considerations must be taken into account:\\
-- There are a lot of parameters that influence the score. We considered some relevant ones: the regularization terms, the nature of activation functions, the type of optimizers, and the number of hidden units in the last layer. However, other relevant parameters are not considered during this optimization phase. For instance, we are not considering the filter dimensions, number of layers, the number of filters, etc. \\
-- Getting the optimal combination of parameters implies enumerating all the possible combinations of all the parameters. This results in exponential complexity and, after some tries, we observed that this is unfeasible for our available computational resources. Therefore, we adopted an approximation of this methodology, which consisted in a greed approach in which we selected the optimal parameters singularly. Although this does not provide an optimal solution, it still provides some improvement and, more importantly, it allows to keep the algorithm complexity at an acceptable level (linear). \\
+\begin{itemize}
+	\item  There are a lot of parameters that influence the score. We considered some relevant ones: the number of layers, the regularization terms, the type of activation functions and optimizers, and the number of hidden units in the last layer. However, other relevant parameters are not considered during this optimization phase. For instance, we are not considering the number of filters, the filter dimensions, and the basic skeleton of the network is fixed.
+	\item Getting the optimal combination of parameters implies enumerating all the possible combinations of all the parameters. This results in exponential complexity and, after some tries, we observed that this is unfeasible for our available computational resources. Therefore, we adopted an approximation of this methodology, which consisted in a greed approach in which we selected the optimal parameters singularly. Although this does not provide an optimal solution, it still provides some improvement and, more importantly, it allows to keep the algorithm complexity at an acceptable level (linear).
+\end{itemize}
 
 % cross-validation would work better if the dataset was bigger 
 % hidden units in the last layer, optimizers (ADAM, adagrad, ..), activation functions, regularization terms
 %\subsection{Network Architectures}
 %Here we list the network architectures that were built and tested during our experiments. For each one of them, we provide the structure. Then, we propose a summary that contains the best set parameters for all these networks, along with their the prediction scores. In the next paragraph, we provide more details about the architecture that provided the best result. % try to give some motivation?
 \subsection{CNN: 2D Convolutional Layers}
-This network is made of three convolutional layers and two fully connected layers:
+This network is made of three convolutional layers and two fully connected layers:--da cambiare quando abbiamo i risultati
 
-This was the first network that was used. It considers convolutional layers as 2D because at first it seemed natural to consider the provided dataset as a set of images. Therefore, the network was trying to find patterns between close pixels, by applying 2D filters over the input. In the following approaches this changed: we began considering 1D convolutional layers because by analyzing the dataset it became evident that there is no specific reason to keep considering it as images. In fact, as mentioned in \ref{sec:data-analysis}, the dataset consists in signals captured at different times and it does not make much sense to use 2D filter: it would mean to apply convolutions over a matrix whose dimensions represent the EEG channels and the signal values. By applying 1D convolutions, filters are applied directly over all the 28 EEG channels.
+
+This was the first network that was used. It considers convolutional layers as 2D because at first it seemed natural to consider the provided dataset as a set of images. Therefore, the network was trying to find patterns between close pixels, by applying 2D filters over the input. This approach makes sense if there is a spatial relationship among the features. In our case, as mentioned in \ref{sec:data-analysis}, the input sample consists in 28 signals (EEG channels) captured over different time frames. Since the position of the channels is not known, we cannot assume any spatial relationship between them. Therefore, applying a 2D filter over this dataset might try to find patterns between channels that are not spatially correlated. Consequently, we decided to consider them all together by applying a 1D filter instead of a 2D. 
+
+
 \subsection{1D CNN + Batch Normalization}
 This network is made of five convolutional layers and two fully connected layers:
 
@@ -131,12 +164,6 @@ CNN: 2D Convolutional Layers
 	The traditional CNN was trained for 1000 epochs, each consisting of 25 batches of 4 images, on a NVIDIA GeForce GTX graphics card with 2 GB of VRAM, obtaining an F1 score of 0.833. While the U-Net was trained for 10000 iteration with a learning rate $\lambda = 10^{-3}$ which lead to an F1 score of 0.9385 on the test set submitted on Kaggle.
 	To compare different techniques we used the Precision Recall method (PR) which focuses on the relevance of the prediction on the labels of a test set. To compute the PR values we split the training dataset into two subsets, one used for training and one used to compute the PR curve. The latter is computed by gradually increasing the threshold (used to establish, given its probability, if a pixel is a road) to compute different PR values. By doing so, we obtain the graph in Figure \ref{fig:pr}.
 
-	\begin{figure}[h]
-		\centering
-		\includegraphics[width=0.8\columnwidth]{img/pr_curve.png}
-		\caption{Precision and recall evolution regarding our different methods}
-		\label{fig:pr}
-	\end{figure}
 	
 	We can observe three important things in this plot. Since the yellow curve is below every others, we can say that Unet is perfroming better than the traditional approach. The second observation is that the green curve is above the red one. Considering this we can conclude that adding more highway images and getting rid of the seaside images was a good thing. The third observation is about the blue curve. We can see that in some cases the blue curve is above the green one. In fact when we are not rotating the image the network learns better how to detect vertical and horizontal lines but the results are worse when predicting the others. That explains why the blue curve goes above the yellow one between 0.6 and 0.8. We concluded that the yellow curve corresponds to the best model and therefore the one we used for the Kaggle competition.
 	

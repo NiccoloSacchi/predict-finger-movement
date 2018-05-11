@@ -1,6 +1,9 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
-\BOOKMARK [1][-]{section.2}{Exploratory data analysis}{}% 2
+\BOOKMARK [1][-]{section.2}{Dataset}{}% 2
 \BOOKMARK [1][-]{section.3}{Baseline Models}{}% 3
 \BOOKMARK [1][-]{section.4}{Deep Neural Networks}{}% 4
-\BOOKMARK [1][-]{section.5}{Results}{}% 5
-\BOOKMARK [1][-]{section.6}{Conclusion}{}% 6
+\BOOKMARK [2][-]{subsection.4.1}{CNN: 2D Convolutional Layers}{section.4}% 5
+\BOOKMARK [2][-]{subsection.4.2}{1D CNN + Batch Normalization}{section.4}% 6
+\BOOKMARK [2][-]{subsection.4.3}{1D CNN + Batch Normalization + Residual}{section.4}% 7
+\BOOKMARK [1][-]{section.5}{Results}{}% 8
+\BOOKMARK [1][-]{section.6}{Conclusion}{}% 9
