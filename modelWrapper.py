@@ -74,8 +74,8 @@ class modelWrapper(nn.Module):
             batch_size=20, 
             epochs=25, 
             verbose=True,
-            callbacks=[]
-#             save_best_model=False
+            callbacks=[],
+            shuffle=True
            ):
         """ Fit the model on the training data.
         Input:
@@ -100,9 +100,7 @@ class modelWrapper(nn.Module):
                 output.
         - callbacks: list <callback> classes that will be called during training 
                 at each epoch and at the end of the training.
-              
-        - save_best_model: boolean. If True, the best (with the lowest loss) 
-                model state found is stored in storage/<class name>/model.
+        - shuffle: if True. The train set is shuffled at each epoch.
         """
         # ----- initialize the callbacks
         callbacks = [c(self) for c in callbacks]
@@ -115,6 +113,11 @@ class modelWrapper(nn.Module):
         # and the intermediary predictions
         try:
             for e in range(0, epochs):
+                if shuffle:
+                    indices_perm = torch.randperm(X_train.shape[0])
+                    X_train = X_train[indices_perm]
+                    y_train = y_train[indices_perm]
+                    
                 sum_loss_train = 0
                 num_batches = 0
                 for b in range(0, X_train.size(0), batch_size):  
@@ -140,7 +143,7 @@ class modelWrapper(nn.Module):
 
                 if verbose:
                     print(
-                        "Epoch " + str(e) + ": " +
+                        "Epoch " + str(e) + "/" + str(epochs) + ": " +
                         "Train loss:", str(sum_loss_train) + ". " + 
                         'Train accuracy {:0.2f}%'.format(self.score(X_train, y_train)*100) + ". " +
                         ('Test accuracy {:0.2f}%'.format(self.score(X_test, y_test)*100) if compute_test_err else ""))
