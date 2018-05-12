@@ -14,16 +14,6 @@ import torch
 from torch import optim
 from torch import nn
 
-grid_search_on=[
-        ("nb_layers", list(range(1, 7))),
-        ("nb_hidden", [np.asscalar(n) for n in np.arange(40, 201, 40)]),
-        ("activation", [nn.ReLU, nn.Tanh, nn.ELU]),
-        ("weight_decay", [0] + [np.asscalar(wd) for wd in np.logspace(-6, -2, 5, base=np.e)]),
-        ("dropout", [np.asscalar(d) for d in np.linspace(0, 0.30, 4)]),
-        ("optimizer", [optim.Adam, optim.Adadelta, optim.Adamax]),
-        ("nb_layers", list(range(1, 7)))
-    ]
-
 one_khz=False
 
 train = SimpleNamespace()
@@ -43,16 +33,16 @@ X_tr, y_tr = CNN2D_MaxPool.prepare_data(train)
 X_te, y_te = CNN2D_MaxPool.prepare_data(test)
 
 params = {
-    "nb_layers": 3,
-    "nb_hidden": 80,
-    "activation": nn.ReLU,
-    "weight_decay": 0.0024787521766663594,
-    "dropout": 0.0,
-    "optimizer": optim.Adam,
+    'activation': nn.ReLU,
+    'dropout': 0.0,
+    'nb_hidden': 40,
+    'nb_layers': 3,
+    'optimizer': torch.optim.Adadelta,
+    'weight_decay': 0
 }
 model = CNN2D_MaxPool(**params)
 
-model.fit(X_tr, y_tr, X_te, y_te, epochs=100, callbacks=[keep_best_model], verbose=False)
+model.fit(X_tr, y_tr, X_te, y_te, epochs=30, callbacks=[keep_best_model], verbose=False)
 print("CNN 2D - Test score:", model.score(X_te, y_te))
 
 
@@ -61,16 +51,16 @@ X_tr, y_tr = CNN_1D_MaxPool.prepare_data(train)
 X_te, y_te = CNN_1D_MaxPool.prepare_data(test)
 
 params = {
-    "nb_layers": 2,
-    "nb_hidden": 40,
-    "activation": nn.ReLU,
-    "weight_decay": 0, #0.0024787521766663594
-    "dropout": 0.01,
-    "optimizer": optim.Adam,
+    'activation': nn.ELU,
+    'dropout': 0.09999999999999999,
+    'nb_hidden': 40,
+    'nb_layers': 4,
+    'optimizer': torch.optim.Adamax,
+    'weight_decay': 0.0024787521766663594
 }
 model = CNN_1D_MaxPool(**params)
 
-model.fit(X_tr, y_tr, X_te, y_te, epochs=100, callbacks=[keep_best_model], verbose=False)
+model.fit(X_tr, y_tr, X_te, y_te, epochs=30, callbacks=[keep_best_model], verbose=False)
 print("CNN 1D MAX POOL - Test score:", model.score(X_te, y_te))
 
 
@@ -79,16 +69,16 @@ X_tr, y_tr = CNN_1D_BatchNorm.prepare_data(train)
 X_te, y_te = CNN_1D_BatchNorm.prepare_data(test)
 
 params = {
-    "nb_layers": 3,
-    "nb_hidden": 40,
-    "activation": nn.Tanh,
-    "weight_decay": 0.007, #0.006737946999085469
-    "dropout": 0.01,
-    "optimizer": optim.Adam,
+    'activation': nn.ELU,
+    'dropout': 0.3,
+    'nb_hidden': 160,
+    'nb_layers': 5,
+    'optimizer': torch.optim.Adamax,
+    'weight_decay': 0.0024787521766663594
 }
 model = CNN_1D_BatchNorm(**params)
 
-model.fit(X_tr, y_tr, X_te, y_te, epochs=100, callbacks=[keep_best_model], verbose=False)
+model.fit(X_tr, y_tr, X_te, y_te, epochs=40, callbacks=[keep_best_model], verbose=False)
 print("CNN 1D BATCH NORM - Test score:", model.score(X_te, y_te))
 
 
@@ -98,16 +88,15 @@ X_te, y_te = CNN_1D_BatchNorm_Dial.prepare_data(test)
 
 
 params = {
-    "nb_layers": 1,
-    "nb_hidden": 40,
-    "activation": nn.Tanh,
-    "weight_decay": 0.13, #0.1353352832366127
-    "dropout": 0.2,
-    "optimizer": optim.Adamax,
-}
+    'activation': nn.ELU,
+    'dropout': 0.09999999999999999,
+    'nb_hidden': 40,
+    'nb_layers': 1,
+    'optimizer': torch.optim.Adadelta,
+    'weight_decay': 0.1353352832366127}
 model = CNN_1D_BatchNorm_Dial(**params)
 
-model.fit(X_tr, y_tr, X_te, y_te, epochs=100, callbacks=[keep_best_model], verbose=False)
+model.fit(X_tr, y_tr, X_te, y_te, epochs=50, callbacks=[keep_best_model], verbose=False)
 print("CNN 1D BATCH NORM DIAL - Test score:", model.score(X_te, y_te))
 
 
@@ -123,9 +112,9 @@ params = {
     "activation": nn.Tanh,
     "weight_decay": 0.0025,
     "dropout": 0.01,
-    "optimizer": optim.Adadelta,
+    "optimizer": torch.optim.Adadelta,
 }
 model = CNN_1D_Residual(**params)
 
-model.fit(X_tr, y_tr, X_te, y_te, epochs=100, callbacks=[keep_best_model], verbose=False)
+model.fit(X_tr, y_tr, X_te, y_te, epochs=20, callbacks=[keep_best_model], verbose=False)
 print("CNN 1D RESIDUAL - Test score:", model.score(X_te, y_te))
