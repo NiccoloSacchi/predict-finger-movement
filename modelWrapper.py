@@ -116,7 +116,9 @@ class modelWrapper(nn.Module):
         try:
             for e in range(0, epochs):
                 sum_loss_train = 0
-                for b in range(0, X_train.size(0), batch_size):                    
+                num_batches = 0
+                for b in range(0, X_train.size(0), batch_size):  
+                    num_batches += 1
                     output = self(X_train[b : b+batch_size])
                     loss = self.criterion(output, y_train[b : b+batch_size])
 
@@ -127,8 +129,13 @@ class modelWrapper(nn.Module):
                     self.zero_grad()
                     loss.backward()
                     self.optimizer.step()
-                    
-                test_loss = self.criterion(self(X_test), y_test).data[0] if compute_test_err else None
+                
+                sum_loss_train = sum_loss_train/num_batches
+                
+                test_loss = None
+                if compute_test_err:
+                    test_loss = self.criterion(self(X_test), y_test).data
+                    test_loss = test_loss.item() if torch.__version__ == '0.4.0' else test_loss[0]
                 self.history.new_epoch(sum_loss_train, test_loss)
 
                 if verbose:

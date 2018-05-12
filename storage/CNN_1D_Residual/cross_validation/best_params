@@ -22,19 +22,19 @@ L4L
 ss.(dp0
 Vnb_layers
 p1
-L2L
+L3L
 sVnb_hidden
 p2
-L80L
+L200L
 sVactivation
 p3
 P('module', <class 'torch.nn.modules.activation.Tanh'>, '/home/sacchi/anaconda3/lib/python3.6/site-packages/torch/nn/modules/activation.py', 'class Tanh(Module):\n    r"""Applies element-wise,\n    :math:`\\text{Tanh}(x) = \\tanh(x) = \\frac{e^x - e^{-x}} {e^x + e^{-x}}`\n\n    Shape:\n        - Input: :math:`(N, *)` where `*` means, any number of additional\n          dimensions\n        - Output: :math:`(N, *)`, same shape as the input\n\n    .. image:: scripts/activation_images/Tanh.png\n\n    Examples::\n\n        >>> m = nn.Tanh()\n        >>> input = torch.randn(2)\n        >>> output = m(input)\n    """\n\n    def forward(self, input):\n        return torch.tanh(input)\n')
 sVweight_decay
 p4
-F0.0024787521766663594
+F0.018315638888734186
 sVdropout
 p5
-F0.09999999999999999
+F0.19999999999999998
 sVoptimizer
 p6
 ctorch.optim.adadelta
