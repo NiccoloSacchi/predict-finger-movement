@@ -112,7 +112,7 @@ class modelWrapper(nn.Module):
         # use "try" so that if the training stops or gets interrupted I still save the best model 
         # and the intermediary predictions
         try:
-            for e in range(0, epochs):
+            for e in range(1, epochs+1):
                 if shuffle:
                     indices_perm = torch.randperm(X_train.shape[0])
                     X_train = X_train[indices_perm]
