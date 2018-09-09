@@ -1,13 +1,13 @@
 # Predict Finger Movement
-In this project we built some different models to predict the finger movements from Electroencephalography recordings. Then, we compared them with some common baselines.
+In this project we implemented different deep learning models to predict the finger movements from Electroencephalography recordings. Then, we compared them with some common baselines.
 
 Files:
-  - modelWrapper.py: contains the main structure adopted by all the proposed models (fit, cross-validation, score functions etc.)
-  - models.py: contains the implementation of the models (that are based on what is specified in modelWrapper.py)
-  - callbacks.py: callbacks functions that can be passed to the fit function of the models
-  - test.py: shows the train and test accuracy for the best model
-  - dlc_bci.py: loads the dataset
-  - helpers.py: support functions
-  - report.pdf: contains the report
+ - `modelWrapper.py`: contains a superclass implementing the general functions adopted by all the proposed models, e.g. fit, cross-validation, score functions.
+- `models.py`: contains the implementation of the models.
+- `callbacks.py`: callbacks functions that can be passed to the fit() function of the models.
+- `test.py`: trains the best model we found and shows both the train and test accuracies.
+- `dlc_bci.py`: loads the dataset.
+- `helpers.py`: support functions.
+- `Report.pdf`: report which explains the problem and our approach to it.
 
-More details can be found in the report.
+We suggest to read the report for a detalied description.
